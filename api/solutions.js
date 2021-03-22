@@ -33,7 +33,7 @@ router.post('/', async (req, res) => {
     }
 
     // 렝귀지 유효성 검사
-    if (!languages.contains(solutionBuilder.language)) {
+    if (!languages.includes(solutionBuilder.language)) {
         console.log('post solutions: 지원하지 않는 언어')
         req.sendStatus(400)
         return
