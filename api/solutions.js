@@ -3,8 +3,7 @@ var router = express.Router()
 
 const Problem = require('../models/Problem')
 const Solution = require('../models/Solution')
-
-const languages = ['python3', 'c', 'c++']
+const availableLanguages = require('../availableLanguages')
 
 // TODO : 그냥 다 보여주면 안됨. 수정하셈.
 router.get('/', async (req, res) => {
@@ -33,7 +32,7 @@ router.post('/', async (req, res) => {
     }
 
     // 렝귀지 유효성 검사
-    if (!languages.includes(solutionBuilder.language)) {
+    if (!availableLanguages.includes(solutionBuilder.language)) {
         console.log('post solutions: 지원하지 않는 언어')
         res.sendStatus(400)
         return
