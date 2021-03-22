@@ -12,7 +12,7 @@ const SolutionSchema = new mongoose.Schema({
     testcaseHitCount: { type: Number, required: true },
     testcaseSize: { type: Number, required: true },
 
-    problemKey: { type: String, required: true, index: true },
+    problemKey: { type: Number, required: true, index: true },
     problemVersion: { type: Number, required: true },
     language: { type: String, require: true },
     sourceCode: { type: String, required: true }
