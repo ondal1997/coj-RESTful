@@ -1,5 +1,3 @@
-alert('hello')
-
 const problem = {
     title: 'A+B+C',
     description: 'print A+B+C',
@@ -31,6 +29,19 @@ const problem = {
     ]
 }
 
+const solution = {
+    problemKey: '1000',
+    language: 'c++',
+    sourceCode: `#include <iostream>
+
+    using namespace std;
+
+    int main() {
+        return 0;
+    }
+    `
+}
+
 
 // fetch('http://localhost:3000/api/problems', {
 //     method: 'GET'
@@ -42,12 +53,12 @@ const problem = {
 // })
 
 
-fetch('http://localhost:3000/api/problems', {
+fetch('http://localhost:3000/api/solutions', {
     method: 'POST',
     headers: {
         'Content-Type': 'application/json'
     },
-    body: JSON.stringify(problem)
+    body: JSON.stringify(solution)
 }).then((res) => {
     console.log(res.status)
 })
