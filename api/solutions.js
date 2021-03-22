@@ -22,20 +22,20 @@ router.post('/', async (req, res) => {
     }
     catch (err) {
         console.error(err)
-        req.sendStatus(500)
+        res.sendStatus(500)
         return
     }
 
     if (!parentProblem) {
         console.log('post solutions: 대응하는 문제 없음')
-        req.sendStatus(400)
+        res.sendStatus(400)
         return
     }
 
     // 렝귀지 유효성 검사
     if (!languages.includes(solutionBuilder.language)) {
         console.log('post solutions: 지원하지 않는 언어')
-        req.sendStatus(400)
+        res.sendStatus(400)
         return
     }
 
