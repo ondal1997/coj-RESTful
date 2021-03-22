@@ -18,7 +18,6 @@ router.get('/', async (req, res) => {
 /**
  * POST ${serverAddress}/api/problems
  */
-// TODO: 내부 스키마 검증이  500번->400번..
 router.post('/', async (req, res) => {
     const problemBuilder = {}
     Object.assign(problemBuilder, req.body)
@@ -33,7 +32,7 @@ router.post('/', async (req, res) => {
         problemBuilder.timeLimit < 200 || problemBuilder.timeLimit > 5000 ||
         problemBuilder.memoryLimit < 128 || problemBuilder.memoryLimit > 512
     ) {
-        console.log('시간 및 메모리 제한 범위 이상')
+        console.log('post problems : 시간 및 메모리 제한 범위 이상')
         res.sendStatus(400)
         return
     }
@@ -52,10 +51,19 @@ router.post('/', async (req, res) => {
     // db에 저장
     try {
         await problem.save()
+        console.log('post problems : OK')
         res.sendStatus(200)
     }
     catch (err) {
-        console.log(err)
+
+        if (err._message === 'Problem validation failed')
+        {
+            console.log('post problems : 잘못된 스키마')
+            res.sendStatus(400)
+            return
+        }
+        
+        console.error(err)
         res.sendStatus(500)
     }
 })
