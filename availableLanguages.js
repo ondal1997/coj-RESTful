@@ -1,3 +1,3 @@
-const availableLanguages = ['python3', 'c', 'c++']
+const availableLanguages = ['python3']
 
 module.exports = availableLanguages
