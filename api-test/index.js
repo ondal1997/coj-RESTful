@@ -53,12 +53,12 @@ const solution = {
 // })
 
 
-fetch('http://localhost:3000/api/solutions', {
+fetch('http://localhost:3000/api/problems', {
     method: 'POST',
     headers: {
         'Content-Type': 'application/json'
     },
-    body: JSON.stringify(solution)
+    body: JSON.stringify(problem)
 }).then((res) => {
     console.log(res.status)
 })

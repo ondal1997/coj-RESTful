@@ -4,13 +4,22 @@ var router = express.Router()
 const Problem = require('../models/Problem')
 
 /**
- * GET ${serverAddress}/api/problems
+ * GET ${serverAddress}/api/problems?pos&count -> {problems, totalCount}
  */
 router.get('/', async (req, res) => {
+    console.log(`get problems : ${req.query.pos} ${req.query.count}`)
+
     try {
-        res.json(await Problem.find())
+        const pos = Number.parseInt(req.query.pos) || 0
+        const count = Number.parseInt(req.query.count) || 10
+
+        const problems = await Problem.find({}, {}, { sort: { uploadTime: -1 }, skip: pos, limit: count })
+        const totalCount = await Problem.count({})
+
+        res.json({ problems, totalCount })
     }
     catch (err) {
+        console.error(err)
         res.sendStatus(500)
     }
 })
@@ -56,13 +65,12 @@ router.post('/', async (req, res) => {
     }
     catch (err) {
 
-        if (err._message === 'Problem validation failed')
-        {
+        if (err._message === 'Problem validation failed') {
             console.log('post problems : 잘못된 스키마')
             res.sendStatus(400)
             return
         }
-        
+
         console.error(err)
         res.sendStatus(500)
     }
