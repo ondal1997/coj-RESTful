@@ -11,6 +11,9 @@ const SolutionSchema = new mongoose.Schema({
     state: { type: String, required: true },
     testcaseHitCount: { type: Number, required: true },
     testcaseSize: { type: Number, required: true },
+    maxTime: { type: Number, required: true },
+    maxMemory: { type: Number, required: true },
+    judgeError: { type: String, required: true },
 
     problemKey: { type: Number, required: true, index: true },
     problemVersion: { type: Number, required: true },

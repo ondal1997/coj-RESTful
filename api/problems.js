@@ -3,10 +3,9 @@ var router = express.Router()
 
 const Problem = require('../models/Problem')
 
-// 문제 등록
+// 문제 등록 : 교원만 가능함
  router.post('/problems', async (req, res) => {
-    // req.param.id
-    // req.param.auth
+    const {userId, userClassCode} = req.query
 
     const problemBuilder = {}
     Object.assign(problemBuilder, req.body)
@@ -56,7 +55,7 @@ const Problem = require('../models/Problem')
     }
 })
 
-// 문제 조회
+// 문제 조회 : 권한등급에 따른 차별적조회
 router.get('/problems/:key', async (req, res) => {
     try {
         const problem = await Problem.findOne({ key: req.params.key })

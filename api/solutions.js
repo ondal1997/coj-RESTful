@@ -5,7 +5,7 @@ const Problem = require('../models/Problem')
 const Solution = require('../models/Solution')
 const availableLanguages = require('../availableLanguages')
 
-// 솔루션 등록
+// 솔루션 등록 : 로그인된 유저만 가능
 router.post('/solutions', async (req, res) => {
     const solutionBuilder = {}
     Object.assign(solutionBuilder, req.body)
@@ -36,9 +36,12 @@ router.post('/solutions', async (req, res) => {
 
     solutionBuilder.ownerId = 'tempUserId'
     solutionBuilder.uploadTime = Date.now()
-    solutionBuilder.state = 'idle'
+    solutionBuilder.state = 0
     solutionBuilder.testcaseHitCount = 0
     solutionBuilder.testcaseSize = parentProblem.testcases.length
+    solutionBuilder.maxTime = 0
+    solutionBuilder.maxMemory = 0
+    solutionBuilder.judgeError = 'no errer'
     solutionBuilder.problemVersion = parentProblem.version
 
     // 전체적인 스키마 검사
@@ -47,7 +50,8 @@ router.post('/solutions', async (req, res) => {
         solution = new Solution(solutionBuilder)
     }
     catch (err) {
-        console.log('post problems : 잘못된 스키마')
+        console.log('post solutions : 잘못된 스키마')
+        console.errer(err)
         res.sendStatus(400)
         return
     }
@@ -62,6 +66,7 @@ router.post('/solutions', async (req, res) => {
 
         if (err._message === 'Solution validation failed') {
             console.log('post solutions : 잘못된 스키마')
+            console.error(err)
             res.sendStatus(400)
             return
         }

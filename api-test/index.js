@@ -7,39 +7,22 @@ const problem = {
     examples: [],
     testcases: [
         {
-            input: `3
-4
-7
-10`,
-            output: `7
-44
-274
-`
+            input: `3 4 0`,
+            output: `7`
         },
         {
-            input: `3
-4
-7
-10`,
-            output: `7
-44
-274
-`
+            input: `1 2 3`,
+            output: `6`,
         }
     ]
 }
 
 const solution = {
-    problemKey: '1000',
-    language: 'c++',
-    sourceCode: `#include <iostream>
-
-    using namespace std;
-
-    int main() {
-        return 0;
-    }
-    `
+    problemKey: '1003',
+    language: 'python3',
+    sourceCode: `a, b, c = map(int, input().split())
+print(a+b)
+`
 }
 
 
@@ -53,12 +36,12 @@ const solution = {
 // })
 
 
-fetch('http://localhost:3000/api/problems', {
+fetch('http://192.168.0.141:3000/api/solutions', {
     method: 'POST',
     headers: {
         'Content-Type': 'application/json'
     },
-    body: JSON.stringify(problem)
+    body: JSON.stringify(solution)
 }).then((res) => {
     console.log(res.status)
 })
