@@ -3,31 +3,11 @@ var router = express.Router()
 
 const Problem = require('../models/Problem')
 
-/**
- * GET ${serverAddress}/api/problems?pos&count -> {problems, totalCount}
- */
-router.get('/', async (req, res) => {
-    console.log(`get problems : ${req.query.pos} ${req.query.count}`)
+// 문제 등록
+ router.post('/problems', async (req, res) => {
+    // req.param.id
+    // req.param.auth
 
-    try {
-        const pos = Number.parseInt(req.query.pos) || 0
-        const count = Number.parseInt(req.query.count) || 10
-
-        const problems = await Problem.find({}, {}, { sort: { uploadTime: -1 }, skip: pos, limit: count })
-        const totalCount = await Problem.count({})
-
-        res.json({ problems, totalCount })
-    }
-    catch (err) {
-        console.error(err)
-        res.sendStatus(500)
-    }
-})
-
-/**
- * POST ${serverAddress}/api/problems
- */
-router.post('/', async (req, res) => {
     const problemBuilder = {}
     Object.assign(problemBuilder, req.body)
 
@@ -76,10 +56,8 @@ router.post('/', async (req, res) => {
     }
 })
 
-/**
- * GET ${serverAddress}/api/problems/:key
- */
-router.get('/:key', async (req, res) => {
+// 문제 조회
+router.get('/problems/:key', async (req, res) => {
     try {
         const problem = await Problem.findOne({ key: req.params.key })
 
@@ -91,6 +69,76 @@ router.get('/:key', async (req, res) => {
         }
     }
     catch (err) {
+        console.error(err)
+        res.sendStatus(500)
+    }
+})
+
+// 문제들 조회
+router.get('/problems', async (req, res) => {
+    try {
+        const pos = Number.parseInt(req.query.pos) || 0
+        const count = Number.parseInt(req.query.count)
+
+        const option = {
+            sort: { uploadTime: -1 }, skip: pos
+        }
+        if (count) {
+            option.limit = count
+        }
+        const problems = await Problem.find({}, {}, option)
+        const totalCount = await Problem.count({})
+
+        res.json({ problems, totalCount })
+    }
+    catch (err) {
+        console.error(err)
+        res.sendStatus(500)
+    }
+})
+
+// 사용자의 문제들 조회
+router.get('/users/:userId/problems', async (req, res) => {
+    try {
+        const pos = Number.parseInt(req.query.pos) || 0
+        const count = Number.parseInt(req.query.count)
+
+        const option = {
+            sort: { uploadTime: -1 }, skip: pos
+        }
+        if (count) {
+            option.limit = count
+        }
+        const problems = await Problem.find({ ownerId: req.params.userId }, {}, option)
+        const totalCount = await Problem.count({})
+
+        res.json({ problems, totalCount })
+    }
+    catch (err) {
+        console.error(err)
+        res.sendStatus(500)
+    }
+})
+
+// 카테고리로 문제 조회
+router.post('/problemsWithCategories', async (req, res) => {
+    try {
+        const pos = Number.parseInt(req.query.pos) || 0
+        const count = Number.parseInt(req.query.count)
+
+        const option = {
+            sort: { uploadTime: -1 }, skip: pos
+        }
+        if (count) {
+            option.limit = count
+        }
+        const problems = await Problem.find({ /* 특정 카테고리를 가지고 있는가? */ }, {}, option)
+        const totalCount = await Problem.count({})
+
+        res.json({ problems, totalCount })
+    }
+    catch (err) {
+        console.error(err)
         res.sendStatus(500)
     }
 })

@@ -3,6 +3,7 @@ const autoIncrement = require('mongoose-auto-increment')
 autoIncrement.initialize(mongoose.connection)
 
 // TODO: index 배정
+// 좋아요, 코멘트 등 추가할 수도 있음
 const ProblemSchema = new mongoose.Schema({
     key: { type: Number, required: true, index: true },
     ownerId: { type: String, required: true, index: true },

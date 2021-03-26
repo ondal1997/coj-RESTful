@@ -5,12 +5,8 @@ const Problem = require('../models/Problem')
 const Solution = require('../models/Solution')
 const availableLanguages = require('../availableLanguages')
 
-// TODO : 그냥 다 보여주면 안됨. 수정하셈.
-router.get('/', async (req, res) => {
-    res.json(await Solution.find())
-})
-
-router.post('/', async (req, res) => {
+// 솔루션 등록
+router.post('/solutions', async (req, res) => {
     const solutionBuilder = {}
     Object.assign(solutionBuilder, req.body)
 
@@ -75,7 +71,8 @@ router.post('/', async (req, res) => {
     }
 })
 
-router.get('/:key', async (req, res) => {
+// 솔루션 조회
+router.get('/solutions/:key', async (req, res) => {
     try {
         const solution = await Solution.findOne({ key: req.params.key })
 
@@ -87,6 +84,76 @@ router.get('/:key', async (req, res) => {
         }
     }
     catch (err) {
+        console.error(err)
+        res.sendStatus(500)
+    }
+})
+
+// 솔루션들 조회
+router.get('/solutions', async (req, res) => {
+    try {
+        const pos = Number.parseInt(req.query.pos) || 0
+        const count = Number.parseInt(req.query.count)
+
+        const option = {
+            sort: { uploadTime: -1 }, skip: pos
+        }
+        if (count) {
+            option.limit = count
+        }
+        const solutions = await Solution.find({}, {}, option)
+        const totalCount = await Solution.count({})
+
+        res.json({ solutions, totalCount })
+    }
+    catch (err) {
+        console.error(err)
+        res.sendStatus(500)
+    }
+})
+
+// 문제에 대응하는 솔루션들 조회
+router.get('/problems/:problemKey/solutions', async (req, res) => {
+    try {
+        const pos = Number.parseInt(req.query.pos) || 0
+        const count = Number.parseInt(req.query.count)
+
+        const option = {
+            sort: { uploadTime: -1 }, skip: pos
+        }
+        if (count) {
+            option.limit = count
+        }
+        const solutions = await Solution.find({ problemKey: req.params.problemKey }, {}, option)
+        const totalCount = await Solution.count({})
+
+        res.json({ solutions, totalCount })
+    }
+    catch (err) {
+        console.error(err)
+        res.sendStatus(500)
+    }
+})
+
+// 사용자의 솔루션들 조회
+router.get('/users/:userId/solutions', async (req, res) => {
+    try {
+        const pos = Number.parseInt(req.query.pos) || 0
+        const count = Number.parseInt(req.query.count)
+
+        const option = {
+            sort: { uploadTime: -1 }, skip: pos
+        }
+        if (count) {
+            option.limit = count
+        }
+        const solutions = await Solution.find({ ownerId: req.params.userId }, {}, option)
+        const totalCount = await Solution.count({})
+
+        res.json({ solutions, totalCount })
+    }
+    catch (err) {
+        console.error(err)
         res.sendStatus(500)
     }
 })

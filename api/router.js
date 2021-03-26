@@ -5,7 +5,7 @@ const availableLanguages = require('../availableLanguages')
 router.get('/availableLanguages', (req, res) => {
     res.json(availableLanguages)
 })
-router.use('/problems', require('./problems'))
-router.use('/solutions', require('./solutions'))
+router.use(require('./problems'))
+router.use(require('./solutions'))
 
 module.exports = router
