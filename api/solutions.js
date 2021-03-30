@@ -7,6 +7,8 @@ const availableLanguages = require('../availableLanguages')
 
 // 솔루션 등록 : 로그인된 유저만 가능
 router.post('/solutions', async (req, res) => {
+    console.log('솔루션 등록')
+
     const solutionBuilder = {}
     Object.assign(solutionBuilder, req.body)
 
@@ -78,6 +80,8 @@ router.post('/solutions', async (req, res) => {
 
 // 솔루션 조회
 router.get('/solutions/:key', async (req, res) => {
+    console.log('솔루션 개별 조회')
+
     try {
         const solution = await Solution.findOne({ key: req.params.key })
 
@@ -96,6 +100,8 @@ router.get('/solutions/:key', async (req, res) => {
 
 // 솔루션들 조회
 router.get('/solutions', async (req, res) => {
+    console.log('솔루션 리스트 조회')
+
     try {
         const pos = Number.parseInt(req.query.pos) || 0
         const count = Number.parseInt(req.query.count)
@@ -119,6 +125,8 @@ router.get('/solutions', async (req, res) => {
 
 // 문제에 대응하는 솔루션들 조회
 router.get('/problems/:problemKey/solutions', async (req, res) => {
+    console.log('문제의 솔루션들 조회')
+
     try {
         const pos = Number.parseInt(req.query.pos) || 0
         const count = Number.parseInt(req.query.count)
@@ -130,7 +138,7 @@ router.get('/problems/:problemKey/solutions', async (req, res) => {
             option.limit = count
         }
         const solutions = await Solution.find({ problemKey: req.params.problemKey }, {}, option)
-        const totalCount = await Solution.count({})
+        const totalCount = await Solution.count({ problemKey: req.params.problemKey })
 
         res.json({ solutions, totalCount })
     }
@@ -153,7 +161,7 @@ router.get('/users/:userId/solutions', async (req, res) => {
             option.limit = count
         }
         const solutions = await Solution.find({ ownerId: req.params.userId }, {}, option)
-        const totalCount = await Solution.count({})
+        const totalCount = await Solution.count({ ownerId: req.params.userId })
 
         res.json({ solutions, totalCount })
     }

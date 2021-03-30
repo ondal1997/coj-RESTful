@@ -5,6 +5,8 @@ const Problem = require('../models/Problem')
 
 // 문제 등록 : 교원만 가능함
  router.post('/problems', async (req, res) => {
+    console.log('문제 등록')
+
     const {userId, userClassCode} = req.query
 
     const problemBuilder = {}
@@ -32,6 +34,7 @@ const Problem = require('../models/Problem')
     }
     catch (err) {
         console.log('post problems : 잘못된 스키마')
+        console.error(err)
         res.sendStatus(400)
         return
     }
@@ -46,6 +49,7 @@ const Problem = require('../models/Problem')
 
         if (err._message === 'Problem validation failed') {
             console.log('post problems : 잘못된 스키마')
+            console.error(err)
             res.sendStatus(400)
             return
         }
@@ -57,6 +61,9 @@ const Problem = require('../models/Problem')
 
 // 문제 조회 : 권한등급에 따른 차별적조회
 router.get('/problems/:key', async (req, res) => {
+    console.log('문제 개별 조회')
+    console.log(req.params.key)
+
     try {
         const problem = await Problem.findOne({ key: req.params.key })
 
@@ -75,6 +82,8 @@ router.get('/problems/:key', async (req, res) => {
 
 // 문제들 조회
 router.get('/problems', async (req, res) => {
+    console.log('문제 리스트 조회')
+
     try {
         const pos = Number.parseInt(req.query.pos) || 0
         const count = Number.parseInt(req.query.count)
@@ -109,7 +118,7 @@ router.get('/users/:userId/problems', async (req, res) => {
             option.limit = count
         }
         const problems = await Problem.find({ ownerId: req.params.userId }, {}, option)
-        const totalCount = await Problem.count({})
+        const totalCount = await Problem.count({ ownerId: req.params.userId })
 
         res.json({ problems, totalCount })
     }
@@ -119,7 +128,7 @@ router.get('/users/:userId/problems', async (req, res) => {
     }
 })
 
-// 카테고리로 문제 조회
+// 카테고리로 문제 조회 (미완)
 router.post('/problemsWithCategories', async (req, res) => {
     try {
         const pos = Number.parseInt(req.query.pos) || 0
