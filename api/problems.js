@@ -6,23 +6,43 @@ const Problem = require('../models/Problem')
 // 문제 등록 : 교원만 가능함
  router.post('/problems', async (req, res) => {
     console.log('문제 등록')
-
+   
     const {userId, userClassCode} = req.query
 
     const problemBuilder = {}
     Object.assign(problemBuilder, req.body)
+    console.log(req.body)
 
     problemBuilder.ownerId = 'tempUserId'
     problemBuilder.uploadTime = Date.now()
     problemBuilder.version = 0
 
     // 시간 제한, 메모리 제한의 범위 검사
+    // if (
+    //     !Number.isInteger(problemBuilder.timeLimit) || !Number.isInteger(problemBuilder.memoryLimit) ||
+    //     problemBuilder.timeLimit < 200 || problemBuilder.timeLimit > 5000 ||
+    //     problemBuilder.memoryLimit < 128 || problemBuilder.memoryLimit > 512
+    // ) {
+    //     console.log('post problems : 시간 및 메모리 제한 범위 이상')
+    //     res.sendStatus(400)
+    //     return
+    // }
+
+
+    console.log(problemBuilder)
     if (
-        !Number.isInteger(problemBuilder.timeLimit) || !Number.isInteger(problemBuilder.memoryLimit) ||
+        !Number.isInteger(Number.parseInt(problemBuilder.timeLimit)) || !Number.isInteger(Number.parseInt(problemBuilder.memoryLimit))
+    ) {
+        console.log('post problems : 시간 및 메모리 제한 범위 이상1')
+        res.sendStatus(400)
+        return
+    }
+
+    if (
         problemBuilder.timeLimit < 200 || problemBuilder.timeLimit > 5000 ||
         problemBuilder.memoryLimit < 128 || problemBuilder.memoryLimit > 512
     ) {
-        console.log('post problems : 시간 및 메모리 제한 범위 이상')
+        console.log('post problems : 시간 및 메모리 제한 범위 이상2')
         res.sendStatus(400)
         return
     }
@@ -43,7 +63,7 @@ const Problem = require('../models/Problem')
     try {
         await problem.save()
         console.log('post problems : OK')
-        res.sendStatus(200)
+        res.json({ok: true})
     }
     catch (err) {
 

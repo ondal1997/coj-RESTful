@@ -62,7 +62,7 @@ router.post('/solutions', async (req, res) => {
     try {
         await solution.save()
         console.log('post solutons : OK')
-        res.sendStatus(200)
+        res.json({ok: true})
     }
     catch (err) {
 
