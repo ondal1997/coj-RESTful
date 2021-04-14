@@ -19,7 +19,7 @@ app.use((req, res, next) => {
     next()
 })
 app.use((req, res, next) => {
-    req.userId = req.query.userId || '손님';
+    req.userId = req.query.userId || 'null';
     console.log(req.userId);
     next();
 })
