@@ -7,7 +7,7 @@ router.get('/availableLanguages', (req, res) => {
 })
 router.get('/auth', (req, res) => {
     if (req.userId === 'null') {
-        req.json({isAuthenticated: false});
+        res.json({isAuthenticated: false});
     }
     res.json({isAuthenticated: true, id: req.userId});
 })
