@@ -4,6 +4,7 @@ var router = express.Router()
 const Problem = require('../models/Problem')
 const Solution = require('../models/Solution')
 const availableLanguages = require('../availableLanguages')
+const getChallengeCode = require('./getChallengeCode')
 
 // 솔루션 등록 : 로그인된 유저만 가능
 router.post('/solutions', async (req, res) => {
@@ -36,7 +37,7 @@ router.post('/solutions', async (req, res) => {
         return
     }
 
-    solutionBuilder.ownerId = 'tempUserId'
+    solutionBuilder.ownerId = req.userId
     solutionBuilder.uploadTime = Date.now()
     solutionBuilder.state = 0
     solutionBuilder.testcaseHitCount = 0
@@ -62,7 +63,7 @@ router.post('/solutions', async (req, res) => {
     try {
         await solution.save()
         console.log('post solutons : OK')
-        res.json({ok: true})
+        res.json(solution)
     }
     catch (err) {
 
@@ -83,9 +84,14 @@ router.get('/solutions/:key', async (req, res) => {
     console.log('솔루션 개별 조회')
 
     try {
-        const solution = await Solution.findOne({ key: req.params.key })
+        const solution = await Solution.findOne({ key: req.params.key }).lean()
+
+        if (solution.ownerId !== req.userId && await getChallengeCode(solution.problemKey, req.userId) !== 1) {
+            solution.sourceCode = undefined;
+        }
 
         if (solution) {
+            console.log(solution)
             res.json(solution)
         }
         else {
@@ -112,7 +118,12 @@ router.get('/solutions', async (req, res) => {
         if (count) {
             option.limit = count
         }
-        const solutions = await Solution.find({}, {}, option)
+        const solutions = await Solution.find({}, {}, option).lean()
+        for (const solution of solutions) {
+            if (solution.ownerId !== req.userId && await getChallengeCode(solution.problemKey, req.userId) !== 1) {
+                solution.sourceCode = undefined;
+            }
+        }
         const totalCount = await Solution.count({})
 
         res.json({ solutions, totalCount })
@@ -137,7 +148,12 @@ router.get('/problems/:problemKey/solutions', async (req, res) => {
         if (count) {
             option.limit = count
         }
-        const solutions = await Solution.find({ problemKey: req.params.problemKey }, {}, option)
+        const solutions = await Solution.find({ problemKey: req.params.problemKey }, {}, option).lean()
+        for (const solution of solutions) {
+            if (solution.ownerId !== req.userId && await getChallengeCode(solution.problemKey, req.userId) !== 1) {
+                solution.sourceCode = undefined;
+            }
+        }
         const totalCount = await Solution.count({ problemKey: req.params.problemKey })
 
         res.json({ solutions, totalCount })
@@ -160,7 +176,12 @@ router.get('/users/:userId/solutions', async (req, res) => {
         if (count) {
             option.limit = count
         }
-        const solutions = await Solution.find({ ownerId: req.params.userId }, {}, option)
+        const solutions = await Solution.find({ ownerId: req.params.userId }, {}, option).lean()
+        for (const solution of solutions) {
+            if (solution.ownerId !== req.userId && await getChallengeCode(solution.problemKey, req.userId) !== 1) {
+                solution.sourceCode = undefined;
+            }
+        }
         const totalCount = await Solution.count({ ownerId: req.params.userId })
 
         res.json({ solutions, totalCount })

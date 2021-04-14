@@ -8,7 +8,7 @@ const SolutionSchema = new mongoose.Schema({
     ownerId: { type: String, required: true, index: true },
     uploadTime: { type: Date, required: true },
 
-    state: { type: String, required: true },
+    state: { type: String, required: true, index: true },
     testcaseHitCount: { type: Number, required: true },
     testcaseSize: { type: Number, required: true },
     maxTime: { type: Number, required: true },

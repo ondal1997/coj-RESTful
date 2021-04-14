@@ -19,7 +19,8 @@ app.use((req, res, next) => {
     next()
 })
 app.use((req, res, next) => {
-    console.log('http open');
+    req.userId = req.query.userId || '손님';
+    console.log(req.userId);
     next();
 })
 app.post('/upload', upload.single('upload'), function(req, res){
