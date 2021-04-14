@@ -7,9 +7,9 @@ router.get('/availableLanguages', (req, res) => {
 })
 router.get('/auth', (req, res) => {
     if (req.userId === 'null') {
-        req.json({authenticated: false});
+        req.json({isAuthenticated: false});
     }
-    res.json({authenticated: true, id: req.userId});
+    res.json({isAuthenticated: true, id: req.userId});
 })
 router.use(require('./problems'))
 router.use(require('./solutions'))
