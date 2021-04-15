@@ -5,6 +5,69 @@ const Problem = require('../models/Problem')
 const Solution = require('../models/Solution')
 const getChallengeCode = require('./getChallengeCode')
 
+router.delete('/problems/:key', async (req, res) => {
+    console.log('문제 삭제 요청');
+    const { userId } = req;
+
+    // 로그인이 되었는지 검사
+    // 자료가 있는지 검사
+    // 자기 것이 맞는지 검사
+    try {
+        await Problem.deleteOne({key: req.params.key, ownerId: userId});
+    } catch (error) {
+        res.json({ok: false});
+        return;
+    }
+    res.json({ok: true});
+})
+
+router.put('/problems/:key', async (req, res) => {
+    console.log('문제 수정 요청');
+
+    const { userId } = req;
+    const problemBuilder = {}
+    Object.assign(problemBuilder, req.body)
+    console.log(req.body)
+
+    // 시간 제한, 메모리 제한의 범위 검사
+    console.log(problemBuilder)
+    if (
+        !Number.isInteger(Number.parseInt(problemBuilder.timeLimit)) || !Number.isInteger(Number.parseInt(problemBuilder.memoryLimit))
+    ) {
+        console.log('post problems : 시간 및 메모리 제한 범위 이상1')
+        res.json({ok: false});
+        return
+    }
+
+    if (
+        problemBuilder.timeLimit < 200 || problemBuilder.timeLimit > 5000 ||
+        problemBuilder.memoryLimit < 128 || problemBuilder.memoryLimit > 512
+    ) {
+        console.log('post problems : 시간 및 메모리 제한 범위 이상2')
+        res.json({ok: false});
+        return
+    }
+
+    // db에 저장
+    try {
+        await problem.findOneAndUpdate({key: req.params.key, ownerId: userId}, problemBuilder, { $inc: { version: 1 }, new: true})
+        console.log('post problems : OK')
+        res.json({ ok: true })
+    }
+    catch (err) {
+
+        if (err._message === 'Problem validation failed') {
+            console.log('post problems : 잘못된 스키마')
+            console.error(err)
+            res.sendStatus(400)
+            return
+        }
+
+        console.error(err)
+        res.sendStatus(500)
+    }
+})
+
 // 문제 등록 : 교원만 가능함
 router.post('/problems', async (req, res) => {
     console.log('문제 등록')
@@ -78,7 +141,9 @@ router.get('/problems/:key', async (req, res) => {
 
     try {
         const problem = await Problem.findOne({ key: req.params.key }).lean();
-        problem.testcases = undefined;
+        if (req.userId !== problem.ownerId) {
+            problem.testcases = undefined;
+        }
         problem.challengeCode = await getChallengeCode(problem.key, req.userId);
         problem.submitCount = await Solution.count({ problemKey: problem.key });
         problem.solvedCount = await Solution.count({ problemKey: problem.key, state: 2 });
