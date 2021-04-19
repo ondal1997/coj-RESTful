@@ -12,11 +12,11 @@ const connection = mongoose.connect('mongodb://localhost:27017/judge0326_0', { u
 app.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*")
     res.header("Access-Control-Allow-Headers", "*")
+    res.header('Access-Control-Allow-Methods', "*")
     next()
 })
 app.use((req, res, next) => {
-    req.userId = req.query.userId || 'null';
-    console.log(req.userId);
+    req.userId = req.query.userId;
     next();
 })
 app.use(express.json())

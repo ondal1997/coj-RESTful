@@ -6,7 +6,9 @@ const Solution = require('../models/Solution')
 const availableLanguages = require('../availableLanguages')
 const getChallengeCode = require('./getChallengeCode')
 
-// 솔루션 등록 : 로그인된 유저만 가능
+// 솔루션 등록
+// 로그인 되었는지 검사
+// 생성 시도 -> 서버실패 or 데이터결함
 router.post('/solutions', async (req, res) => {
     console.log('솔루션 등록')
 
@@ -79,7 +81,8 @@ router.post('/solutions', async (req, res) => {
     }
 })
 
-// 솔루션 조회
+// 단일 솔루션 조회
+// 단일 솔루션 상세 조회
 router.get('/solutions/:key', async (req, res) => {
     console.log('솔루션 개별 조회')
 
@@ -104,7 +107,7 @@ router.get('/solutions/:key', async (req, res) => {
     }
 })
 
-// 솔루션들 조회
+// 솔루션 리스트 조회: 정렬, 필터
 router.get('/solutions', async (req, res) => {
     console.log('솔루션 리스트 조회')
 

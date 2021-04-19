@@ -9,161 +9,303 @@ router.delete('/problems/:key', async (req, res) => {
     console.log('문제 삭제 요청');
     const { userId } = req;
 
-    // 로그인이 되었는지 검사
-    // 자료가 있는지 검사
-    // 자기 것이 맞는지 검사
-    try {
-        await Problem.deleteOne({key: req.params.key, ownerId: userId});
-    } catch (error) {
-        res.json({ok: false});
+    // 로그인이 되었는지 검사 -> 무인증
+    if (!userId) {
+        console.log('401');
+        res.json({status: 401});
         return;
     }
-    res.json({ok: true});
+
+    // 자료가 있는지 검사 -> 서버실패 or 무자료
+    let problem;
+    try {
+        problem = await Problem.findOne({key: req.params.key}).lean();
+    } catch (error) {
+        console.log('500');
+        res.json({status: 500});
+        return;
+    }
+    if (!problem) {
+        console.log('404');
+        res.json({status: 404});
+        return;
+    }
+
+    // 자기 것이 맞는지 검사 -> 무소유
+    if (problem.ownerId !== userId) {
+        console.log('403');
+        res.json({status: 403});
+        return;
+    }
+
+    // 삭제 시도 -> (무자료 or) 서버실패
+    try {
+        await Problem.deleteOne({key: req.params.key});
+    } catch (error) {
+        console.log('500');
+        res.json({status: 500});
+        return;
+    }
+    
+    console.log('200');
+    res.json({status: 200});
+    return;
 })
 
 router.put('/problems/:key', async (req, res) => {
     console.log('문제 수정 요청');
-
     const { userId } = req;
-    const problemBuilder = {}
-    Object.assign(problemBuilder, req.body)
-    console.log(req.body)
 
-    // 시간 제한, 메모리 제한의 범위 검사
-    console.log(problemBuilder)
-    if (
-        !Number.isInteger(Number.parseInt(problemBuilder.timeLimit)) || !Number.isInteger(Number.parseInt(problemBuilder.memoryLimit))
-    ) {
-        console.log('post problems : 시간 및 메모리 제한 범위 이상1')
-        res.json({ok: false});
-        return
+    // 로그인 되었는지 검사
+    if (!userId) {
+        console.log('401');
+        res.json({status: 401});
+        return;
     }
 
-    if (
-        problemBuilder.timeLimit < 200 || problemBuilder.timeLimit > 5000 ||
-        problemBuilder.memoryLimit < 128 || problemBuilder.memoryLimit > 512
-    ) {
-        console.log('post problems : 시간 및 메모리 제한 범위 이상2')
-        res.json({ok: false});
-        return
-    }
-
-    // db에 저장
+    // 자료가 있는지 검사
+    let problem;
     try {
-        await problem.findOneAndUpdate({key: req.params.key, ownerId: userId}, problemBuilder, { $inc: { version: 1 }, new: true})
-        console.log('post problems : OK')
-        res.json({ ok: true })
+        problem = await Problem.findOne({key: req.params.key}).lean();
+    } catch (error) {
+        console.log('500');
+        res.json({status: 500});
+        return;
+    }
+    if (!problem) {
+        console.log('404');
+        res.json({status: 404});
+        return;
+    }
+
+    // 자기 것이 맞는지 검사 -> 무소유
+    if (problem.ownerId !== userId) {
+        console.log('403');
+        res.json({status: 403});
+        return;
+    }
+
+    // 업데이트 시도 -> 무자료 or 서버실패 or 데이터결함
+    problem = {}
+    Object.assign(problem, req.body)
+
+    try {
+        const set = new Set(problem.categories);
+        problem.categories = [...set];
+    } catch (error) {
+        console.log('400');
+        res.json({status: 400});
+        return
+    }
+
+    problem.timeLimit = Number.parseInt(problem.timeLimit);
+    problem.memoryLimit = Number.parseInt(problem.memoryLimit);
+    if (
+        Number.isNaN(problem.timeLimit) || Number.isNaN(problem.memoryLimit)
+    ) {
+        console.log('400');
+        res.json({status: 400});
+        return
+    }
+    if (
+        problem.timeLimit < 200 || problem.timeLimit > 5000 ||
+        problem.memoryLimit < 128 || problem.memoryLimit > 512
+    ) {
+        console.log('400');
+        res.json({status: 400});
+        return
+    }
+
+    try {
+        problem = await Problem.findOneAndUpdate({key: req.params.key}, { $set: problem, $inc: { version: 1 } }, {new: true}).setOptions({ runValidators: true });
     }
     catch (err) {
-
-        if (err._message === 'Problem validation failed') {
-            console.log('post problems : 잘못된 스키마')
+        if (err._message === 'Validation failed') {
             console.error(err)
-            res.sendStatus(400)
+            console.log('400')
+            res.json({status: 400});
             return
         }
 
         console.error(err)
-        res.sendStatus(500)
+        console.log('500')
+        res.json({status: 500});
+        return;
     }
+
+    if (!problem) {
+        console.log('404')
+        res.json({status: 404});
+        return;
+    }
+
+    console.log('200')
+    res.json({status: 200, problem});
+    return;
 })
 
-// 문제 등록 : 교원만 가능함
 router.post('/problems', async (req, res) => {
-    console.log('문제 등록')
-
-    console.log(req.userId);
-    const { userId } = req
-
-    const problemBuilder = {}
-    Object.assign(problemBuilder, req.body)
-    console.log(req.body)
-
-    problemBuilder.ownerId = userId;
-    problemBuilder.uploadTime = Date.now()
-    problemBuilder.version = 0
-
-    // 시간 제한, 메모리 제한의 범위 검사
-    console.log(problemBuilder)
-    if (
-        !Number.isInteger(Number.parseInt(problemBuilder.timeLimit)) || !Number.isInteger(Number.parseInt(problemBuilder.memoryLimit))
-    ) {
-        console.log('post problems : 시간 및 메모리 제한 범위 이상1')
-        res.sendStatus(400)
-        return
+    console.log('문제 등록 요청');
+    const { userId } = req;
+    
+    // 로그인 되었는지 검사
+    if (!userId) {
+        console.log('401');
+        res.json({status: 401});
+        return;
     }
 
-    if (
-        problemBuilder.timeLimit < 200 || problemBuilder.timeLimit > 5000 ||
-        problemBuilder.memoryLimit < 128 || problemBuilder.memoryLimit > 512
-    ) {
-        console.log('post problems : 시간 및 메모리 제한 범위 이상2')
-        res.sendStatus(400)
-        return
-    }
+    // 생성 시도 -> 서버실패 or 데이터결함
+    let problem = {}
+    Object.assign(problem, req.body)
 
-    // 전체적인 스키마 검사
-    let problem
+    problem.ownerId = userId;
+    problem.uploadTime = Date.now()
+    problem.version = 0
+
     try {
-        problem = new Problem(problemBuilder)
+        const set = new Set(problem.categories);
+        problem.categories = [...set];
+    } catch (error) {
+        console.log('400');
+        res.json({status: 400});
+        return
+    }
+
+    problem.timeLimit = Number.parseInt(problem.timeLimit);
+    problem.memoryLimit = Number.parseInt(problem.memoryLimit);
+    if (
+        Number.isNaN(problem.timeLimit) || Number.isNaN(problem.memoryLimit)
+    ) {
+        console.log('400');
+        res.json({status: 400});
+        return
+    }
+    if (
+        problem.timeLimit < 200 || problem.timeLimit > 5000 ||
+        problem.memoryLimit < 128 || problem.memoryLimit > 512
+    ) {
+        console.log('400');
+        res.json({status: 400});
+        return
+    }
+
+    try {
+        problem = await Problem.create(problem);
     }
     catch (err) {
-        console.log('post problems : 잘못된 스키마')
-        console.error(err)
-        res.sendStatus(400)
-        return
-    }
-
-    // db에 저장
-    try {
-        await problem.save()
-        console.log('post problems : OK')
-        res.json({ ok: true })
-    }
-    catch (err) {
-
         if (err._message === 'Problem validation failed') {
-            console.log('post problems : 잘못된 스키마')
             console.error(err)
-            res.sendStatus(400)
+            console.log('400')
+            res.json({status: 400});
             return
         }
 
         console.error(err)
-        res.sendStatus(500)
+        console.log('500')
+        res.json({status: 500});
+        return;
     }
+
+    if (!problem) {
+        console.log('500')
+        res.json({status: 500});
+        return;
+    }
+
+    console.log('200')
+    res.json({status: 200, problem});
+    return;
 })
 
-// 문제 조회 : 권한등급에 따른 차별적조회
+// 단일 문제 조회
+// 자료가 있는지 검사
 router.get('/problems/:key', async (req, res) => {
-    console.log('문제 개별 조회')
-    console.log(req.params.key)
+    console.log(`문제(${req.params.key}) 조회 요청`)
 
     try {
-        const problem = await Problem.findOne({ key: req.params.key }).lean();
-        if (req.userId !== problem.ownerId) {
-            problem.testcases = undefined;
+        const problem = await Problem.findOne({ key: req.params.key }, { testcases: 0 }).lean();
+        if (!problem) {
+            console.log('404')
+            res.json({status: 404});
+            return;
         }
+
         problem.challengeCode = await getChallengeCode(problem.key, req.userId);
         problem.submitCount = await Solution.count({ problemKey: problem.key });
         problem.solvedCount = await Solution.count({ problemKey: problem.key, state: 2 });
-        if (problem) {
-            console.log(typeof problem.uploadTime)
-            res.json(problem)
-        }
-        else {
-            res.sendStatus(404)
-        }
+
+        console.log('200')
+        res.json({status: 200, problem});
+        return;
     }
     catch (err) {
         console.error(err)
-        res.sendStatus(500)
+        console.log('500')
+        res.json({status: 500});
+        return;
     }
 })
 
-// 문제들 조회
+// 단일 문제 상세 조회
+// 로그인 되어있는지 검사
+// 자료가 있는지 검사
+// 자기 것이 맞는지 검사
+router.get('/problems/:key/all', async (req, res) => {
+    console.log(`문제(${req.params.key}) 상세 조회 요청`)
+    const { userId } = req;
+
+    // 로그인이 되었는지 검사 -> 무인증
+    if (!userId) {
+        console.log('401');
+        res.json({status: 401});
+        return;
+    }
+
+    try {
+        const problem = await Problem.findOne({ key: req.params.key }).lean();
+        if (!problem) {
+            console.log('404')
+            res.json({status: 404});
+            return;
+        }
+
+        // 자기 것이 맞는지 검사 -> 무소유
+        if (problem.ownerId !== userId) {
+            console.log('403');
+            res.json({status: 403});
+            return;
+        }
+
+        problem.challengeCode = await getChallengeCode(problem.key, req.userId);
+        problem.submitCount = await Solution.count({ problemKey: problem.key });
+        problem.solvedCount = await Solution.count({ problemKey: problem.key, state: 2 });
+
+        console.log('200')
+        res.json({status: 200, problem});
+        return;
+    }
+    catch (err) {
+        console.error(err)
+        console.log('500')
+        res.json({status: 500});
+        return;
+    }
+})
+
+// 문제 리스트 조회: 정렬, 필터
+// sortBy=property
+// sort=1(오름차순) -1(내림차순)
+// 
+// categorySubString=A 카테고리들 중 하나의 부분문자열로 A이어야한다.
+// categorySubString=B 카테고리들 중 하나의 부분문자열로 B이어야한다.
+// ..
+// titleSubString=C title의 부분문자열로 C이어야한다.
+//
+// skip 결과 중 생략할 개수
+// limit 결과 중 보일 최대 개수
 router.get('/problems', async (req, res) => {
-    console.log('문제 리스트 조회')
+    console.log('문제 리스트 조회 요청')
 
     try {
         const pos = Number.parseInt(req.query.pos) || 0
@@ -196,43 +338,16 @@ router.get('/problems', async (req, res) => {
         }
         const totalCount = await Problem.count(option);
 
-        res.json({ problems, totalCount })
+        console.log('200');
+        res.json({ status: 200, problems, totalCount })
+        return;
     }
     catch (err) {
         console.error(err)
-        res.sendStatus(500)
+        console.log('500')
+        res.json({status: 500});
+        return;
     }
 })
-
-// 사용자의 문제들 조회
-router.get('/users/:userId/problems', async (req, res) => {
-    try {
-        const pos = Number.parseInt(req.query.pos) || 0
-        const count = Number.parseInt(req.query.count)
-
-        const option = {
-            sort: { uploadTime: -1 }, skip: pos
-        }
-        if (count) {
-            option.limit = count
-        }
-        const problems = await Problem.find({ ownerId: req.params.userId }, {}, option).lean()
-        for (const problem of problems) {
-            problem.testcases = undefined;
-            problem.challengeCode = await getChallengeCode(problem.key, req.userId);
-            problem.submitCount = await Solution.count({ problemKey: problem.key });
-            problem.solvedCount = await Solution.count({ problemKey: problem.key, state: 2 });
-        }
-        const totalCount = await Problem.count({ ownerId: req.params.userId })
-
-        res.json({ problems, totalCount })
-    }
-    catch (err) {
-        console.error(err)
-        res.sendStatus(500)
-    }
-})
-
-// 카테고리로 문제 조회 (미완)
 
 module.exports = router

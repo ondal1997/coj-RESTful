@@ -35,13 +35,25 @@ print(a+b)
 //     console.log(res)
 // })
 
+// fetch('http://127.0.0.1:3000/api/problems/1003?userId=ondal1997', {
+//     method: 'DELETE'
+// }).then((res) => res.json()).then((res) => console.log(res));
 
-fetch('http://192.168.0.141:3000/api/solutions', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(solution)
-}).then((res) => {
-    console.log(res.status)
-})
+// fetch('http://127.0.0.1:3000/api/problems?userId=ondal1997', {
+//     method: 'POST',
+//     headers: {
+//         'Content-Type': 'application/json'
+//     },
+//     body: JSON.stringify(problem)
+// }).then((res) => res.json()).then((res) => console.log(res));
+
+// fetch('http://127.0.0.1:3000/api/problems/1004?userId=ondal1997', {
+//     method: 'PUT',
+//     headers: {
+//         'Content-Type': 'application/json'
+//     },
+//     body: JSON.stringify(problem)
+// }).then((res) => res.json()).then((res) => console.log(res));
+
+fetch('http://127.0.0.1:3000/api/problems/1014?userId=ondal1997')
+.then((res) => res.json()).then((res) => console.log(res));

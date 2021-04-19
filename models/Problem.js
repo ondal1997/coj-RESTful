@@ -44,7 +44,9 @@ const ProblemSchema = new mongoose.Schema({
                 required: true
             }
         }
-    ]
+    ],
+    // submitCount: { type: Number },
+    // solvedCount: { type: Number },
 })
 
 ProblemSchema.plugin(autoIncrement.plugin, {
