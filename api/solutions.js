@@ -7,109 +7,118 @@ const availableLanguages = require('../availableLanguages')
 const getChallengeCode = require('./getChallengeCode')
 
 // 솔루션 등록
-// 로그인 되었는지 검사
-// 생성 시도 -> 서버실패 or 데이터결함
 router.post('/solutions', async (req, res) => {
-    console.log('솔루션 등록')
+    console.log('솔루션 등록 요청')
+    const { userId } = req;
 
-    const solutionBuilder = {}
-    Object.assign(solutionBuilder, req.body)
+    // 로그인이 되었는지 검사 -> 무인증
+    if (!userId) {
+        console.log('401');
+        res.json({status: 401});
+        return;
+    }
+
+    // 생성 시도 -> 서버실패 or 데이터결함
+    const solution = {}
+    Object.assign(solution, req.body)
 
     // 솔루션에 대응하는 문제를 가져온다.
     let parentProblem
     try {
-        parentProblem = await Problem.findOne({ key: solutionBuilder.problemKey })
+        parentProblem = await Problem.findOne({ key: solution.problemKey })
     }
     catch (err) {
-        console.error(err)
-        res.sendStatus(500)
+        console.log('500');
+        res.json({status: 500});
         return
     }
 
     if (!parentProblem) {
-        console.log('post solutions: 대응하는 문제 없음')
-        res.sendStatus(400)
+        // 대응하는 문제가 없다!
+        console.log('400')
+        res.json({status: 400});
         return
     }
 
     // 렝귀지 유효성 검사
-    if (!availableLanguages.includes(solutionBuilder.language)) {
-        console.log('post solutions: 지원하지 않는 언어')
-        res.sendStatus(400)
+    if (!availableLanguages.includes(solution.language)) {
+        console.log('400')
+        res.json({status: 400});
         return
     }
 
-    solutionBuilder.ownerId = req.userId
-    solutionBuilder.uploadTime = Date.now()
-    solutionBuilder.state = 0
-    solutionBuilder.testcaseHitCount = 0
-    solutionBuilder.testcaseSize = parentProblem.testcases.length
-    solutionBuilder.maxTime = 0
-    solutionBuilder.maxMemory = 0
-    solutionBuilder.judgeError = 'no errer'
-    solutionBuilder.problemVersion = parentProblem.version
+    solution.ownerId = req.userId
+    solution.uploadTime = Date.now()
+    solution.state = 0
+    solution.testcaseHitCount = 0
+    solution.testcaseSize = parentProblem.testcases.length
+    solution.maxTime = 0
+    solution.maxMemory = 0
+    solution.judgeError = ''
+    solution.problemVersion = parentProblem.version
 
-    // 전체적인 스키마 검사
-    let solution
     try {
-        solution = new Solution(solutionBuilder)
-    }
-    catch (err) {
-        console.log('post solutions : 잘못된 스키마')
-        console.errer(err)
-        res.sendStatus(400)
-        return
-    }
-
-    // db에 저장
-    try {
-        await solution.save()
-        console.log('post solutons : OK')
-        res.json(solution)
+        solution = await Solution.create(solution);
     }
     catch (err) {
 
         if (err._message === 'Solution validation failed') {
-            console.log('post solutions : 잘못된 스키마')
             console.error(err)
-            res.sendStatus(400)
+            console.log('400')
+            res.json({status: 400});
             return
         }
 
         console.error(err)
-        res.sendStatus(500)
+        console.log('500')
+        res.json({status: 500});
+        return;
     }
+
+    if (!problem) {
+        console.log('500')
+        res.json({status: 500});
+        return;
+    }
+
+    console.log('200')
+    res.json({status: 200, solution});
+    return;
 })
 
 // 단일 솔루션 조회
 // 단일 솔루션 상세 조회
 router.get('/solutions/:key', async (req, res) => {
-    console.log('솔루션 개별 조회')
+    console.log(`솔루션(${req.params.key}) 조회 요청`)
 
     try {
         const solution = await Solution.findOne({ key: req.params.key }).lean()
+        if (!solution) {
+            console.log('404')
+            res.json({status: 404});
+            return;
+        }
 
         if (solution.ownerId !== req.userId && await getChallengeCode(solution.problemKey, req.userId) !== 1) {
-            solution.sourceCode = undefined;
+            solution.sourceCode = '';
+            solution.judgeError = '';
         }
 
-        if (solution) {
-            console.log(solution)
-            res.json(solution)
-        }
-        else {
-            res.sendStatus(404)
-        }
+        console.log('200')
+        res.json({status: 200, solution});
+        return;
     }
     catch (err) {
         console.error(err)
-        res.sendStatus(500)
+        console.log('500')
+        res.json({status: 500});
+        return;
     }
 })
 
 // 솔루션 리스트 조회: 정렬, 필터
 router.get('/solutions', async (req, res) => {
-    console.log('솔루션 리스트 조회')
+    console.log('솔루션 리스트 조회 요청')
 
     try {
         const pos = Number.parseInt(req.query.pos) || 0
@@ -125,15 +134,19 @@ router.get('/solutions', async (req, res) => {
         for (const solution of solutions) {
             if (solution.ownerId !== req.userId && await getChallengeCode(solution.problemKey, req.userId) !== 1) {
                 solution.sourceCode = undefined;
+                solution.judgeError = undefined;
             }
         }
         const totalCount = await Solution.count({})
 
-        res.json({ solutions, totalCount })
+        console.log('200');
+        res.json({ status: 200, solutions, totalCount })
     }
     catch (err) {
         console.error(err)
-        res.sendStatus(500)
+        console.log('500')
+        res.json({status: 500});
+        return;
     }
 })
 
@@ -155,6 +168,7 @@ router.get('/problems/:problemKey/solutions', async (req, res) => {
         for (const solution of solutions) {
             if (solution.ownerId !== req.userId && await getChallengeCode(solution.problemKey, req.userId) !== 1) {
                 solution.sourceCode = undefined;
+                solution.judgeError = undefined;
             }
         }
         const totalCount = await Solution.count({ problemKey: req.params.problemKey })
