@@ -19,7 +19,7 @@ router.post('/solutions', async (req, res) => {
     }
 
     // 생성 시도 -> 서버실패 or 데이터결함
-    const solution = {}
+    let solution = {}
     Object.assign(solution, req.body)
 
     // 솔루션에 대응하는 문제를 가져온다.
@@ -54,7 +54,7 @@ router.post('/solutions', async (req, res) => {
     solution.testcaseSize = parentProblem.testcases.length
     solution.maxTime = 0
     solution.maxMemory = 0
-    solution.judgeError = ''
+    solution.judgeError = 'no error'
     solution.problemVersion = parentProblem.version
 
     try {
@@ -75,7 +75,7 @@ router.post('/solutions', async (req, res) => {
         return;
     }
 
-    if (!problem) {
+    if (!solution) {
         console.log('500')
         res.json({status: 500});
         return;
@@ -141,6 +141,7 @@ router.get('/solutions', async (req, res) => {
 
         console.log('200');
         res.json({ status: 200, solutions, totalCount })
+        return;
     }
     catch (err) {
         console.error(err)
@@ -152,7 +153,7 @@ router.get('/solutions', async (req, res) => {
 
 // 문제에 대응하는 솔루션들 조회
 router.get('/problems/:problemKey/solutions', async (req, res) => {
-    console.log('문제의 솔루션들 조회')
+    console.log('특정 문제의 솔루션 리스트 조회')
 
     try {
         const pos = Number.parseInt(req.query.pos) || 0
@@ -173,39 +174,15 @@ router.get('/problems/:problemKey/solutions', async (req, res) => {
         }
         const totalCount = await Solution.count({ problemKey: req.params.problemKey })
 
-        res.json({ solutions, totalCount })
+        console.log('200');
+        res.json({ status: 200, solutions, totalCount })
+        return;
     }
     catch (err) {
         console.error(err)
-        res.sendStatus(500)
-    }
-})
-
-// 사용자의 솔루션들 조회
-router.get('/users/:userId/solutions', async (req, res) => {
-    try {
-        const pos = Number.parseInt(req.query.pos) || 0
-        const count = Number.parseInt(req.query.count)
-
-        const option = {
-            sort: { uploadTime: -1 }, skip: pos
-        }
-        if (count) {
-            option.limit = count
-        }
-        const solutions = await Solution.find({ ownerId: req.params.userId }, {}, option).lean()
-        for (const solution of solutions) {
-            if (solution.ownerId !== req.userId && await getChallengeCode(solution.problemKey, req.userId) !== 1) {
-                solution.sourceCode = undefined;
-            }
-        }
-        const totalCount = await Solution.count({ ownerId: req.params.userId })
-
-        res.json({ solutions, totalCount })
-    }
-    catch (err) {
-        console.error(err)
-        res.sendStatus(500)
+        console.log('500')
+        res.json({status: 500});
+        return;
     }
 })
 
