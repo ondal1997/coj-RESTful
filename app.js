@@ -16,8 +16,11 @@ app.use((req, res, next) => {
     next()
 })
 app.use((req, res, next) => {
-    req.userId = req.query.userId;
-    next();
+    setTimeout(()=> {
+
+        req.userId = req.query.userId;
+        next();
+    }, 100)
 })
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))

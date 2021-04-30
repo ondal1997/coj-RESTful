@@ -116,6 +116,18 @@ router.get('/solutions/:key', async (req, res) => {
     }
 })
 
+function byteLength(str) {
+    // returns the byte length of an utf8 string
+    var s = str.length;
+    for (var i=str.length-1; i>=0; i--) {
+      var code = str.charCodeAt(i);
+      if (code > 0x7f && code <= 0x7ff) s++;
+      else if (code > 0x7ff && code <= 0xffff) s+=2;
+      if (code >= 0xDC00 && code <= 0xDFFF) i--; //trail surrogate
+    }
+    return s;
+  }
+
 // 솔루션 리스트 조회: 정렬, 필터
 router.get('/solutions', async (req, res) => {
     console.log('솔루션 리스트 조회 요청')
@@ -132,7 +144,10 @@ router.get('/solutions', async (req, res) => {
         }
         const solutions = await Solution.find({}, {}, option).lean()
         for (const solution of solutions) {
+            solution.accessable = true;
+            solution.byteLength = byteLength(solution.sourceCode);
             if (solution.ownerId !== req.userId && await getChallengeCode(solution.problemKey, req.userId) !== 1) {
+                solution.accessable = false;
                 solution.sourceCode = undefined;
                 solution.judgeError = undefined;
             }
@@ -167,7 +182,10 @@ router.get('/problems/:problemKey/solutions', async (req, res) => {
         }
         const solutions = await Solution.find({ problemKey: req.params.problemKey }, {}, option).lean()
         for (const solution of solutions) {
+            solution.accessable = true;
+            solution.byteLength = byteLength(solution.sourceCode);
             if (solution.ownerId !== req.userId && await getChallengeCode(solution.problemKey, req.userId) !== 1) {
+                solution.accessable = false;
                 solution.sourceCode = undefined;
                 solution.judgeError = undefined;
             }

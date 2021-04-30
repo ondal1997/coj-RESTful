@@ -312,7 +312,7 @@ router.get('/problems', async (req, res) => {
         const count = Number.parseInt(req.query.count) || 0
 
         let title = req.query.title || ''
-        let category = req.query.category || ''
+        let category = req.query.title || ''
 
         title = [...title].join('_');
         title = title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -323,8 +323,10 @@ router.get('/problems', async (req, res) => {
         category = category.replace(/_/g, '\\s*');
 
         let option = category ? {
-            title: { $regex: title, $options: 'ix' },
-            categories: { $regex: category, $options: 'ix' },
+            $or: [
+            {title: { $regex: title, $options: 'ix' }},
+            {categories: { $regex: category, $options: 'ix' }},
+            ]
         } : {
             title: { $regex: title, $options: 'ix' },
         }

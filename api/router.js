@@ -3,14 +3,14 @@ var router = express.Router()
 
 const availableLanguages = require('../availableLanguages')
 router.get('/availableLanguages', (req, res) => {
-    res.json(availableLanguages)
+    res.json({status: 200, availableLanguages})
 })
 router.get('/auth', (req, res) => {
     if (!req.userId) {
-        res.json({isAuthenticated: false});
+        res.json({status: 200, isAuthenticated: false});
         return;
     }
-    res.json({isAuthenticated: true, id: req.userId});
+    res.json({status: 200, isAuthenticated: true, id: req.userId});
 })
 router.use(require('./problems'))
 router.use(require('./solutions'))
