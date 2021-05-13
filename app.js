@@ -7,7 +7,7 @@ const apiRouter = require('./api/router')
 const app = express()
 const port = process.env.PORT | 3000
 
-const connection = mongoose.connect('mongodb://localhost:27017/judge0326_0', { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false })
+const connection = mongoose.connect('mongodb://localhost:27017/judge0513_0', { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false })
 
 app.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*")
@@ -16,11 +16,8 @@ app.use((req, res, next) => {
     next()
 })
 app.use((req, res, next) => {
-    setTimeout(()=> {
-
-        req.userId = req.query.userId;
-        next();
-    }, 100)
+    req.userId = req.query.userId;
+    next();
 })
 app.use(express.json())
 app.use(express.urlencoded({ extended: false }))

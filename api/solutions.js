@@ -3,8 +3,57 @@ var router = express.Router()
 
 const Problem = require('../models/Problem')
 const Solution = require('../models/Solution')
+
 const availableLanguages = require('../availableLanguages')
 const getChallengeCode = require('./getChallengeCode')
+
+// user page
+router.get('/problemNumbers', async (req, res) => {
+    console.log('GET problemNumbers');
+    const { id } = req.query;
+
+    if (!id) {
+        console.log('400');
+        res.json({ status: 400 });
+        return;
+    }
+
+    let solutions;
+    try {
+        solutions = await Solution.find({ ownerId: id }).lean();
+    } catch (err) {
+        console.error(err);
+        res.json({ status: 500 });
+        return;
+    }
+
+    const acs = new Set();
+    const all = new Set();
+    const countsOfState = {};
+    solutions.forEach((solution) => {
+        if (solution.state == 2) {
+            acs.add(solution.problemKey);
+        }
+        all.add(solution.problemKey);
+
+        if (!countsOfState[solution.state]) {
+            countsOfState[solution.state] = 0;
+        }
+        countsOfState[solution.state]++;
+    });
+    
+    for (const value of acs) {
+        all.delete(value);
+    }
+    const accepted = Array.from(acs);
+    const notAccepted = Array.from(all);
+
+    accepted.sort();
+    notAccepted.sort();
+
+    console.log('200')
+    res.json({status: 200, accepted, notAccepted, countsOfState});
+});
 
 // 솔루션 등록
 router.post('/solutions', async (req, res) => {
@@ -136,13 +185,27 @@ router.get('/solutions', async (req, res) => {
         const pos = Number.parseInt(req.query.pos) || 0
         const count = Number.parseInt(req.query.count)
 
+        let problemKey = req.query.problemKey || ''
+        let ownerId = req.query.ownerId || ''
+        let targetState = req.query.state || ''
+
         const option = {
             sort: { uploadTime: -1 }, skip: pos
         }
         if (count) {
             option.limit = count
         }
-        const solutions = await Solution.find({}, {}, option).lean()
+        let query = {};
+        if (problemKey) {
+            query.problemKey = problemKey;
+        }
+        if (ownerId) {
+            query.ownerId = ownerId;
+        }
+        if (targetState) {
+            query.state = targetState;
+        }
+        const solutions = await Solution.find(query, {}, option).lean()
         for (const solution of solutions) {
             solution.accessable = true;
             solution.byteLength = byteLength(solution.sourceCode);
@@ -152,7 +215,7 @@ router.get('/solutions', async (req, res) => {
                 solution.judgeError = undefined;
             }
         }
-        const totalCount = await Solution.count({})
+        const totalCount = await Solution.count(query)
 
         console.log('200');
         res.json({ status: 200, solutions, totalCount })

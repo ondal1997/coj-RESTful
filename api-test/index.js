@@ -35,7 +35,7 @@ print(a+b)
 //     console.log(res)
 // })
 
-// fetch('http://127.0.0.1:3000/api/problems/1003?userId=ondal1997', {
+// fetch('http://192.168.0.100:3000/api/problems/1058?userId=손님', {
 //     method: 'DELETE'
 // }).then((res) => res.json()).then((res) => console.log(res));
 
@@ -55,5 +55,5 @@ print(a+b)
 //     body: JSON.stringify(problem)
 // }).then((res) => res.json()).then((res) => console.log(res));
 
-fetch('http://127.0.0.1:3000/api/problems/1014?userId=ondal1997')
-.then((res) => res.json()).then((res) => console.log(res));
+// fetch('http://127.0.0.1:3000/api/problems/1014?userId=ondal1997')
+// .then((res) => res.json()).then((res) => console.log(res));

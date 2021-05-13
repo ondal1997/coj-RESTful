@@ -49,7 +49,6 @@ router.delete('/problems/:key', async (req, res) => {
     
     console.log('200');
     res.json({status: 200});
-    return;
 })
 
 router.put('/problems/:key', async (req, res) => {
