@@ -217,6 +217,36 @@ router.post('/problems', async (req, res) => {
     return;
 })
 
+
+// 문제 간략 조회
+// 자료가 있는지 검사
+router.get('/problems/:key/brief', async (req, res) => {
+    console.log(`문제(${req.params.key}) 간략 조회 요청`)
+
+    try {
+        const problem = await Problem.findOne({ key: req.params.key }, { testcases: 0 }).lean();
+        if (!problem) {
+            console.log('404')
+            res.json({status: 404});
+            return;
+        }
+
+        // problem.challengeCode = await getChallengeCode(problem.key, req.userId);
+        // problem.submitCount = await Solution.count({ problemKey: problem.key });
+        // problem.solvedCount = await Solution.count({ problemKey: problem.key, state: 2 });
+
+        console.log('200')
+        res.json({status: 200, problem: { title: problem.title, categories: problem.categories }});
+        return;
+    }
+    catch (err) {
+        console.error(err)
+        console.log('500')
+        res.json({status: 500});
+        return;
+    }
+})
+
 // 단일 문제 조회
 // 자료가 있는지 검사
 router.get('/problems/:key', async (req, res) => {
