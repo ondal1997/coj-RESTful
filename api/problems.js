@@ -115,6 +115,15 @@ router.put('/problems/:key', async (req, res) => {
         return
     }
 
+    problem.level = Number.parseInt(problem.level);
+    if (!Number.isNaN(problem.level)) {
+        if (problem.level < 0 || problem.level > 9) {
+            console.log('400');
+            res.json({status: 400});
+            return
+        }
+    }
+
     try {
         problem = await Problem.findOneAndUpdate({key: req.params.key}, { $set: problem, $inc: { version: 1 } }, {new: true}).setOptions({ runValidators: true });
     }
@@ -189,6 +198,15 @@ router.post('/problems', async (req, res) => {
         return
     }
 
+    problem.level = Number.parseInt(problem.level);
+    if (!Number.isNaN(problem.level)) {
+        if (problem.level < 0 || problem.level > 9) {
+            console.log('400');
+            res.json({status: 400});
+            return
+        }
+    }
+
     try {
         problem = await Problem.create(problem);
     }
@@ -236,7 +254,7 @@ router.get('/problems/:key/brief', async (req, res) => {
         // problem.solvedCount = await Solution.count({ problemKey: problem.key, state: 2 });
 
         console.log('200')
-        res.json({status: 200, problem: { title: problem.title, categories: problem.categories }});
+        res.json({status: 200, problem: { title: problem.title, categories: problem.categories, level: problem.level }});
         return;
     }
     catch (err) {

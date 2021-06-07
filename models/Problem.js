@@ -14,6 +14,7 @@ const ProblemSchema = new mongoose.Schema({
     description: { type: String, required: true },
     inputDescription: { type: String },
     outputDescription: { type: String },
+    level: { type: Number },
     categories: [
         {
             type: String
