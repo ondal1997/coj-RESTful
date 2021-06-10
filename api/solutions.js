@@ -7,32 +7,6 @@ const Solution = require('../models/Solution')
 const availableLanguages = require('../availableLanguages')
 const getChallengeCode = require('./getChallengeCode')
 
-function getLevelScore(level) {
-    switch (level) {
-      case 1:
-        return 3;
-      case 2:
-        return 5;
-      case 3:
-        return 10;
-      case 4:
-        return 25;
-      case 5:
-        return 75;
-      case 6:
-        return 300;
-      case 7:
-        return 1500;
-      case 8:
-        return 9000;
-      case 9:
-        return 48000;
-      case 0:
-      default:
-        return 3;
-    }
-  }
-
 // user page
 router.get('/problemNumbers', async (req, res) => {
     console.log('GET problemNumbers');
@@ -74,22 +48,11 @@ router.get('/problemNumbers', async (req, res) => {
     const accepted = Array.from(acs);
     const notAccepted = Array.from(all);
 
-    let score = 0;
-    for (const key of accepted) {
-        let problem;
-        try {
-            problem = await Problem.findOne({ key }).lean();
-        } catch (err) {
-        }
-        const level = problem ? problem.level || 0 : 0;
-        score += getLevelScore(level || 0);
-    };
-
     accepted.sort();
     notAccepted.sort();
 
     console.log('200')
-    res.json({status: 200, accepted, notAccepted, countsOfState, score});
+    res.json({status: 200, accepted, notAccepted, countsOfState});
 });
 
 // 솔루션 등록
@@ -310,8 +273,8 @@ router.get('/rejudge/:problemKey', async (req, res) => {
     const { problemKey } = req.params;
 
     try {
-        const { testcaseSize, problemVersion } = await Problem.findOne({ key: problemKey }).lean();
-        await Solution.updateMany({ problemKey }, { state: 0, testcaseHitCount: 0, maxTime: 0, maxMemory: 0, judgeError: '', testcaseSize, problemVersion });
+        const { testcases, version } = await Problem.findOne({ key: problemKey }).lean();
+        await Solution.updateMany({ problemKey }, { state: 0, testcaseHitCount: 0, maxTime: 0, maxMemory: 0, judgeError: '', testcaseSize: testcases.length, problemVersion: version });
 
         console.log('200');
         res.json({ status: 200 });
