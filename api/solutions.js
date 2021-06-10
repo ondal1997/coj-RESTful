@@ -304,4 +304,25 @@ router.get('/problems/:problemKey/solutions', async (req, res) => {
     }
 })
 
+router.get('/rejudge/:problemKey', async (req, res) => {
+    console.log('특정 문제 재채점')
+
+    const { problemKey } = req.params;
+
+    try {
+        const { testcaseSize, problemVersion } = await Problem.findOne({ key: problemKey }).lean();
+        await Solution.updateMany({ problemKey }, { state: 0, testcaseHitCount: 0, maxTime: 0, maxMemory: 0, judgeError: '', testcaseSize, problemVersion });
+
+        console.log('200');
+        res.json({ status: 200 });
+        return;
+    }
+    catch (err) {
+        console.error(err)
+        console.log('500')
+        res.json({status: 500});
+        return;
+    }
+})
+
 module.exports = router
