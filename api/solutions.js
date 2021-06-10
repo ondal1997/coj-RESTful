@@ -270,6 +270,12 @@ router.get('/problems/:problemKey/solutions', async (req, res) => {
 router.get('/rejudge/:problemKey', async (req, res) => {
     console.log('특정 문제 재채점')
 
+    if (userId !== 'admin') {
+        console.log('403');
+        res.json({status: 403});
+        return;
+    }
+
     const { problemKey } = req.params;
 
     try {
