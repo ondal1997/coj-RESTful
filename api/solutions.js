@@ -49,8 +49,8 @@ router.get('/problemNumbers', async (req, res) => {
 
         const problem = await Problem.findOne({ key: solution.problemKey }).lean();
         accepted.push(value);
-        if (problem?.level) {
-            acLevels.push(problem?.level);
+        if (problem && problem.level) {
+            acLevels.push(problem.level);
         } else {
             acLevels.push(0);
         }
