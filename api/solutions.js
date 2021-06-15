@@ -42,17 +42,26 @@ router.get('/problemNumbers', async (req, res) => {
         countsOfState[solution.state]++;
     });
     
+    const accepted = [];
+    const acLevels = [];
     for (const value of acs) {
         all.delete(value);
+
+        const problem = await Problem.findOne({ key: solution.problemKey }).lean();
+        accepted.push(value);
+        if (problem?.level) {
+            acLevels.push(problem?.level);
+        } else {
+            acLevels.push(0);
+        }
     }
-    const accepted = Array.from(acs);
     const notAccepted = Array.from(all);
 
     accepted.sort();
     notAccepted.sort();
 
     console.log('200')
-    res.json({status: 200, accepted, notAccepted, countsOfState});
+    res.json({status: 200, accepted, notAccepted, countsOfState, acLevels});
 });
 
 // 솔루션 등록
