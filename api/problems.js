@@ -117,11 +117,13 @@ router.put('/problems/:key', async (req, res) => {
 
     problem.level = Number.parseInt(problem.level);
     if (!Number.isNaN(problem.level)) {
-        if (problem.level < 0 || problem.level > 9) {
+        if (problem.level < 0 || problem.level > 10) {
             console.log('400');
             res.json({status: 400});
             return
         }
+    } else {
+        delete problem.level;
     }
 
     try {
@@ -200,7 +202,7 @@ router.post('/problems', async (req, res) => {
 
     problem.level = Number.parseInt(problem.level);
     if (!Number.isNaN(problem.level)) {
-        if (problem.level < 0 || problem.level > 9) {
+        if (problem.level < 0 || problem.level > 10) {
             console.log('400');
             res.json({status: 400});
             return
