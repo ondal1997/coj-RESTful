@@ -25,5 +25,5 @@ node app
 
 ## Associated Repository
 
-- [front-end](https://github.com/ondal1997/sandboxWrapper)
-- [judge-server](https://github.com/ondal1997/coj-fe)
+- [front-end](https://github.com/ondal1997/coj-fe)
+- [judge-server](https://github.com/ondal1997/sandboxWrapper)
