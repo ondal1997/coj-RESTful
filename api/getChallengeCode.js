@@ -1,4 +1,4 @@
-const Solution = require('../models/Solution');
+const Solution = require("../models/Solution");
 
 /*
 
@@ -9,21 +9,21 @@ const Solution = require('../models/Solution');
 */
 
 const getChallengeCode = async (problemKey, userId) => {
-    const solutions = await Solution.find({problemKey, ownerId: userId}).lean()
+  const solutions = await Solution.find({ problemKey, ownerId: userId }).lean();
 
-    let res = 0;
+  let res = 0;
 
-    for (let i = 0; i < solutions.length; i++) {
-        if (solutions[i].state == 2) {
-            return 1;
-        }
-
-        if (solutions[i].state > 2 && solutions[i].state < 8) {
-            res = -1;
-        }
+  for (let i = 0; i < solutions.length; i++) {
+    if (solutions[i].state == 2) {
+      return 1;
     }
 
-    return res;
-}
+    if (solutions[i].state > 2 && solutions[i].state < 8) {
+      res = -1;
+    }
+  }
+
+  return res;
+};
 
 module.exports = getChallengeCode;

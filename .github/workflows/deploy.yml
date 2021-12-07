@@ -1,0 +1,18 @@
+name: Deploy
+on: [push]
+jobs:
+  Deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.REMOTE_IP }}
+          username: ${{ secrets.REMOTE_SSH_ID }}
+          key: ${{ secrets.REMOTE_SSH_KEY }}
+          port: ${{ secrets.REMOTE_SSH_PORT }}
+          script: |
+            cd coj-be
+            echo ${{ secrets.REMOTE_SSH_KEY }} | sudo -S git pull
+            echo ${{ secrets.REMOTE_SSH_KEY }} | sudo -S npm install
+            echo ${{ secrets.REMOTE_SSH_KEY }} | sudo -S forever stop 0
+            echo ${{ secrets.REMOTE_SSH_KEY }} | sudo -S forever start app.js
